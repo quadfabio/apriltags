@@ -1,0 +1,64 @@
+<launch>
+  <include file="$(find orobot_bringup)/launch/minimal.launch" />
+  <include file="$(find orobot_teleop)/launch/logitech.launch" />
+  <include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch" />
+
+  <!-- Republish RAW images from compressed topic (use it if playing bag) 
+  <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect2_head/rgb/image raw out:=/image_decompressed" required="true" /> -->
+
+  <node pkg="apriltags" type="apriltags" name="apriltags" output="screen">
+    <param name="~default_tag_size" value="0.1675" />
+
+    <param name="~viewer" value="false" />
+    <param name="~mapping" value="true" />
+    <param name="~max_dist" value="1.4" />
+    <param name="~max_obl_dist" value="0.5" />
+    <param name="~rgb_camera" value="true" />
+    <param name="~publish_detections_image" value="true" />
+
+    <param name="~display_type" value="CUBE" />
+    <param name="~marker_thickness" value="0.02" />
+
+    <!-- Use this topic if playing bag 
+    <remap from="~image" to="/image_decompressed"/> -->
+    <!-- Use this topic if running with real robot -->
+    <remap from="~image" to="/kinect2_head/rgb/image"/> 
+    <remap from="~camera_info" to="/kinect2_head/rgb/camera_info"/>
+    <remap from="~marker_array" to="/apriltags/marker_array"/>
+    <remap from="~detections" to="/apriltags/detections"/>
+  </node>
+
+  <arg name="base" default="base_link" />
+
+  <node pkg="apriltags" type="estimated_localization" name="estimated_localization" output="screen">
+    <param name="~yaml_file_path" value="/home/orobot/workspace/ros/catkin/src/apriltags/include/tags/detected_tag.yaml" />
+    <param name="~map_frame" value="map" />
+    <param name="~base_frame" value="$(arg base)" />
+    <param name="~camera_frame" value="kinect2_head_rgb_optical_frame" />
+    <param name="~max_dist" value="1.4" />
+    <param name="~max_obl_dist" value="0.5" />
+    <param name="~vis_base_marker" value="false" />
+    <param name="~vis_real_markers" value="true" />
+  </node>
+
+  <node pkg="apriltags" type="tbl" name="tbl" output="screen">
+    <param name="~rate" value="10" />
+    <param name="~start_delay" value="2" />
+    <param name="~distance_threshold" value="1" />
+    <param name="~precision" value="0.2" />
+    <param name="~base_frame" value="base_link" />
+    <param name="~odom_frame" value="odom" />
+    <param name="~map_frame" value="map" />
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find apriltags)/include/rviz/navigation_apriltags.rviz"/>
+
+  <node name="map_server" pkg="map_server" type="map_server" args="/home/orobot/workspace/ros/catkin/src/apriltags/include/maps/video.yaml" />
+  
+  <arg name="custom_param_file" default="$(find orobot_navigation)/param/dummy.yaml"/>
+
+  <include file="$(find orobot_navigation)/launch/includes/move_base.launch.xml">
+    <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+  </include>
+
+</launch>

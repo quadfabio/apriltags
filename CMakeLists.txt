@@ -11,6 +11,12 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   message_generation
   geometry_msgs
+  tf
+  orobot_bringup
+  orobot_navigation
+  orobot_teleop
+  orobot_mapping
+  kinect2_bridge
 )
 find_package(OpenCV REQUIRED)
 find_package(Eigen REQUIRED)
@@ -38,6 +44,12 @@ catkin_package(
                  image_transport
                  roscpp
                  geometry_msgs
+                 tf
+                 orobot_bringup
+                 orobot_navigation
+                 orobot_teleop
+                 orobot_mapping
+                 kinect2_bridge
 )
 
 # CGAL requires that -frounding-math be set.
@@ -73,12 +85,27 @@ add_dependencies(apriltags_swatbotics apriltags_swatbotics_EXTERNAL)
 
 include_directories(
     include/
+    apriltags/
     ${catkin_INCLUDE_DIRS}
     ${Eigen_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
     ${Yaml_INCLUDE_DIRS}
     ${apriltags_swatbotics_INCLUDE_DIRS}
 )
+
+add_executable(estimated_localization src/estimated_localization.cpp)
+target_link_libraries(estimated_localization ${catkin_LIBRARIES})
+target_link_libraries(estimated_localization ${Yaml_LIBRARIES})
+add_dependencies(estimated_localization ${PROJECT_NAME}_gencpp)
+
+add_executable(write_markers src/write_markers.cpp)
+target_link_libraries(write_markers ${catkin_LIBRARIES})
+target_link_libraries(write_markers ${Yaml_LIBRARIES})
+add_dependencies(write_markers ${PROJECT_NAME}_gencpp)
+
+add_executable(tbl include/tbl.h src/tbl.cpp)
+target_link_libraries(tbl ${catkin_LIBRARIES})
+add_dependencies(tbl ${PROJECT_NAME}_gencpp)
 
 add_executable(apriltags src/apriltags.cpp)
 target_link_libraries(apriltags ${catkin_LIBRARIES})
@@ -88,10 +115,10 @@ target_link_libraries(apriltags ${Yaml_LIBRARIES})
 target_link_libraries(apriltags apriltags_swatbotics)
 add_dependencies(apriltags ${PROJECT_NAME}_gencpp)
 
-install(TARGETS apriltags
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} 
-)
+#install(TARGETS apriltags
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
-install(FILES ${apriltags_swatbotics_LIBRARIES}
-  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
+#install(FILES ${apriltags_swatbotics_LIBRARIES}
+#  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#)

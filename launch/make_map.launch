@@ -1,0 +1,57 @@
+<launch>
+	<include file="$(find orobot_bringup)/launch/minimal.launch" />
+	<include file="$(find orobot_teleop)/launch/logitech.launch" />
+	<include file="$(find orobot_navigation)/launch/gmapping_demo.launch"/>
+	<include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch" />
+	
+	<arg name="max_d" default="1.5" />
+	<arg name="max_o_d" default="0.5" />
+
+	<!-- Republish RAW images from compressed topic (use it if playing bag) 
+	<node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect2_head/rgb/image raw out:=/image_decompressed" required="true" />-->
+
+	<node pkg="apriltags" type="apriltags" name="apriltags" output="screen">
+		<param name="~default_tag_size" value="0.1675" />
+
+		<!-- Window with video stream and tag detection -->
+		<param name="~viewer" value="false" />
+		<!-- Republish modified image with tag detection -->
+		<param name="~publish_detections_image" value="true" />
+		<!-- Type and thickness of tag detection marker on RViz -->
+		<param name="~display_type" value="CUBE" />
+		<param name="~marker_thickness" value="0.02" />
+
+
+		<!-- Keep this bounds low for a better positioning of the marker. 
+		Note: when a tag is detected it will be shown a black and white tag overlaying the real one. When the tag is close enough (depending on the bounds below) edges will also be shown. (Sorry for the bad, bad english) -->
+		<param name="~max_dist" value="$(arg max_d)" /> 
+		<param name="~max_obl_dist" value="$(arg max_o_d)" /> 
+		<!-- Let this parameter as true -->
+		<param name="mapping" value="true"/>
+
+		<!-- Camera info -->
+		<!-- Use this topic if playing bag 
+		<remap from="~image" to="/image_decompressed"/> -->
+		<!-- Use this topic if running with real robot -->
+		<remap from="~image" to="/kinect2_head/rgb/image"/>
+		<remap from="~camera_info" to="/kinect2_head/rgb/camera_info"/>
+		
+		<!-- Detection and markers topics -->
+		<remap from="~marker_array" to="/apriltags/marker_array"/>
+		<remap from="~detections" to="/apriltags/detections"/>
+	</node>
+
+	<!-- Markers position saver -->
+	<node pkg="apriltags" type="write_markers" name="write_markers" output="screen">
+		<param name="~yaml_file_path" value="/home/orobot/workspace/ros/catkin/src/apriltags/include/tags/detected_tag_video.yaml" />
+		<param name="~map_frame" value="map" />
+        <param name="~camera_frame" value="kinect2_head_rgb_optical_frame" />
+		<!-- Keep this bounds low for a better positioning of the marker.-->
+		<param name="~max_dist" value="$(arg max_d)" /> 
+		<param name="~max_obl_dist" value="$(arg max_o_d)" /> 
+		<!-- Avoiding false tag detection telling max_id of used tags -->
+		<param name="~max_id" value="10" />
+	</node>
+
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find apriltags)/include/rviz/mapping_apriltags.rviz"/>
+</launch>

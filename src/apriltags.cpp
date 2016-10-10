@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ros/forwards.h>
 #include <ros/single_subscriber_publisher.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
 #include <visualization_msgs/Marker.h>
 #include <opencv/cv.h>
@@ -55,11 +56,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "apriltags.h"
 #include <apriltags/AprilTagDetections.h>
-
+#include <signal.h>
 
 using namespace std;
 
 // Functions
+
+void mySigintHandler(int sig)
+{
+    ROS_WARN("Shutting down apriltags node.");
+
+    //Destroying Stuff
+    cvDestroyWindow("AprilTags");
+    delete detector_;
+    delete family_;
+
+    ros::shutdown();
+}
 
 double GetTagSize(int tag_id)
 {
@@ -213,7 +226,7 @@ void DrawMarkerEdges(const TagDetection& detection, cv::Mat& image)
     colors.push_back(cv::Scalar(255,0,0)); // blue
     colors.push_back(cv::Scalar(0,204,255)); // yellow
 
-    const int edge_thickness = 2;
+    const int edge_thickness = 20;
     for(int i = 0; i < 4; i++) {
         cv::Point2f p0(detection.p[i].x, detection.p[i].y);
         cv::Point2f p1(detection.p[(i + 1) % 4].x, detection.p[(i + 1) % 4].y);
@@ -257,7 +270,10 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     cv_bridge::CvImagePtr subscribed_ptr;
     try
     {
-        subscribed_ptr = cv_bridge::toCvCopy(msg, "mono8");
+        if(bgr_camera_)
+            subscribed_ptr = cv_bridge::toCvCopy(msg, "mono8");
+        else
+            subscribed_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     }
     catch(cv_bridge::Exception& e)
     {
@@ -291,7 +307,10 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
     {
         try
         {
-            subscribed_color_ptr = cv_bridge::toCvCopy(msg, "bgr8");
+            if(bgr_camera_)
+                subscribed_color_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+            else
+                subscribed_color_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
         }
         catch(cv_bridge::Exception& e)
         {
@@ -324,7 +343,7 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
         Eigen::Quaternion<double> q(R);
         
         double tag_size = GetTagSize(detections[i].id);
-        cout << tag_size << " " << detections[i].id << endl;
+        //cout << tag_size << " " << detections[i].id << endl;
         
         // Fill in MarkerArray msg
         visualization_msgs::Marker marker_transform;
@@ -397,9 +416,17 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
                 DrawMarkerID(detections[i], text_color, subscribed_color_ptr->image);
             }
 
-            if (display_marker_edges_)
+            if (display_marker_edges_ || mapping_)
             {
-                DrawMarkerEdges(detections[i], subscribed_color_ptr->image);
+                double dx = marker_transform.pose.position.x;
+                double dy = marker_transform.pose.position.y;
+                double dz = marker_transform.pose.position.z;
+                
+                double distance = sqrt(pow(dx, 2) + pow(dy, 2) + pow(dz, 2));
+                if(abs(dx) < max_obl_dist_ && distance < max_dist_)
+                {
+                    DrawMarkerEdges(detections[i], subscribed_color_ptr->image);
+                }
             }
 
             if (display_marker_axes_)
@@ -483,12 +510,16 @@ void GetParameterValues()
     node_->param("marker_thickness", marker_thickness_, 0.01);
 
     node_->param("viewer", viewer_, false);
+    node_->param("rgb_camera", bgr_camera_, true);
     node_->param("publish_detections_image", publish_detections_image_, false);
     node_->param("display_marker_overlay", display_marker_overlay_, true);
     node_->param("display_marker_outline", display_marker_outline_, false);
     node_->param("display_marker_id", display_marker_id_, false);
     node_->param("display_marker_edges", display_marker_edges_, false);
     node_->param("display_marker_axes", display_marker_axes_, false);
+    node_->param("mapping", mapping_, false);
+    node_->param("max_dist", max_dist_, 25.0);
+    node_->param("max_obl_dist", max_obl_dist_, 15.0);
 
     ROS_INFO("Tag Family: %s", tag_family_name_.c_str());
 
@@ -553,20 +584,15 @@ int main(int argc, char **argv)
     InitializeTags();
 
     if(viewer_){
-        cvNamedWindow("AprilTags");
+        cvNamedWindow("AprilTags", cv::WINDOW_NORMAL);
         cvStartWindowThread();
     }
 
     ROS_INFO("AprilTags node started.");
     running_ = false;
     has_camera_info_ = false;
+    signal(SIGINT, mySigintHandler);
     ros::spin();
-    ROS_INFO("AprilTags node stopped.");
-
-    //Destroying Stuff
-    cvDestroyWindow("AprilTags");
-    delete detector_;
-    delete family_;
 
     return EXIT_SUCCESS;
 }

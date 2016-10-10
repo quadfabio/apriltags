@@ -32,9 +32,12 @@ std::string tag_family_name_;
 
 // Settings and local information
 bool viewer_;
+bool bgr_camera_;
 bool publish_detections_image_;
 double default_tag_size_;
 double marker_thickness_;
+double max_dist_;
+double max_obl_dist_;
 boost::unordered_map<size_t, double> tag_sizes_;
 bool running_;
 bool has_camera_info_;
@@ -45,6 +48,7 @@ bool display_marker_outline_;
 bool display_marker_id_;
 bool display_marker_edges_;
 bool display_marker_axes_;
+bool mapping_;
 
 void GetMarkerTransformUsingOpenCV(const TagDetection& detection, Eigen::Matrix4d& transform, cv::Mat& rvec, cv::Mat& tvec);
 
