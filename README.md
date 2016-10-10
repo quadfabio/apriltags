@@ -1,7 +1,7 @@
 apriltags
 =========
 
-*This repository is a fork of http://github.com/swatbotics/apriltags-cpp project with additional features.*
+*This repository is a fork of https://github.com/personalrobotics/apriltags ROS wrapper for the Swatbotics C++ port of the AprilTag visual fiducial detector http://github.com/swatbotics/apriltags-cpp, with additional features.*
 
 ROS wrapper for the Swatbotics C++ port of the AprilTag visual fiducial detector with localization algorithm for TurtleBot.  
 The Swatbotics port uses OpenCV and CGAL for improved performance.  
