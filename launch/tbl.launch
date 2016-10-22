@@ -6,13 +6,16 @@
   <!-- Republish RAW images from compressed topic (use it if playing bag) 
   <node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect2_head/rgb/image raw out:=/image_decompressed" required="true" /> -->
 
+  <arg name="max_d" default="1.5" />
+  <arg name="max_a" default="30" />
+
   <node pkg="apriltags" type="apriltags" name="apriltags" output="screen">
     <param name="~default_tag_size" value="0.1675" />
 
     <param name="~viewer" value="false" />
     <param name="~mapping" value="true" />
-    <param name="~max_dist" value="1.4" />
-    <param name="~max_obl_dist" value="0.5" />
+    <param name="~max_dist" value="$(arg max_d)" /> 
+    <param name="~max_angle" value="$(arg max_a)" /> 
     <param name="~rgb_camera" value="true" />
     <param name="~publish_detections_image" value="true" />
 
@@ -35,8 +38,8 @@
     <param name="~map_frame" value="map" />
     <param name="~base_frame" value="$(arg base)" />
     <param name="~camera_frame" value="kinect2_head_rgb_optical_frame" />
-    <param name="~max_dist" value="1.4" />
-    <param name="~max_obl_dist" value="0.5" />
+    <param name="~max_dist" value="$(arg max_d)" /> 
+    <param name="~max_angle" value="$(arg max_a)" /> 
     <param name="~vis_base_marker" value="false" />
     <param name="~vis_real_markers" value="true" />
   </node>

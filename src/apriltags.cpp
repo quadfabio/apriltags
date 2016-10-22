@@ -423,9 +423,14 @@ void ImageCallback(const sensor_msgs::ImageConstPtr& msg)
                 double dz = marker_transform.pose.position.z;
                 
                 double distance = sqrt(pow(dx, 2) + pow(dy, 2) + pow(dz, 2));
-                if(abs(dx) < max_obl_dist_ && distance < max_dist_)
+                if(distance < max_dist_)
                 {
-                    DrawMarkerEdges(detections[i], subscribed_color_ptr->image);
+                    //  Checking for angles only for near tags
+                    double yaw = tf::getYaw(marker_transform.pose.rotation);
+                    double pitch = tf::getPitch(marker_transform.pose.rotation);
+                    
+                    if(abs(yaw) < max_angle_ && abs(pitch) < max_angle_)    
+                        DrawMarkerEdges(detections[i], subscribed_color_ptr->image);
                 }
             }
 
@@ -519,7 +524,9 @@ void GetParameterValues()
     node_->param("display_marker_axes", display_marker_axes_, false);
     node_->param("mapping", mapping_, false);
     node_->param("max_dist", max_dist_, 25.0);
-    node_->param("max_obl_dist", max_obl_dist_, 15.0);
+    node_->param("max_angle", max_angle_, 30.0);
+    //  converting degree in radians
+    max_angle_ = max_angle_ * 3.14159/180;
 
     ROS_INFO("Tag Family: %s", tag_family_name_.c_str());
 

@@ -52,10 +52,25 @@ void MarkerCallback (const visualization_msgs::MarkerArray& published_markers)
 		double dz = published_markers.markers[i].pose.position.z;
 		
 		double distance = sqrt(pow(dx, 2) + pow(dy, 2) + pow(dz, 2));
+        
+        //  Use only near tag
+        if(distance > max_dist_)
+        {
+            continue;
+        }
+
+        //  Checking for angles only for near tags
+        double yaw = tf::getYaw(published_markers.markers[i].pose.rotation);
+        double pitch = tf::getPitch(published_markers.markers[i].pose.rotation);
+        
+        if(abs(yaw) > max_angle_ || abs(pitch) > max_angle_)    
+        {
+            continue;
+        }
 
         //  Use only near tags and check for transform to exist.  
-		//if (distance < max_dist_ && GetTf(map_frame_, published_markers.markers[i].header.frame_id, tf_map2kinect, 0.2) && dx < max_obl_dist_)
-        if (distance < max_dist_ && GetTf(map_frame_, camera_frame_, tf_map2kinect, 0.2) && abs(dx) < max_obl_dist_)
+		//if (distance < max_dist_ && GetTf(map_frame_, published_markers.markers[i].header.frame_id, tf_map2kinect, 0.2))
+        if (distance < max_dist_ && GetTf(map_frame_, camera_frame_, tf_map2kinect, 0.2))
         {
         	//	make a copy only if necessary.
         	marker = published_markers.markers[i];
@@ -174,9 +189,11 @@ void GetParameterValues()
     node_->param("max_tag_id", max_id_, DEFAULT_MAX_TAG_ID);
     node_->param("yaml_file_path", yaml_path_, DEFAULT_YAML_FILE_PATH);
     node_->param("max_dist", max_dist_, DEFAULT_MAX_DIST);
+    node_->param("max_angle", max_angle_, DEFAULT_MAX_ANGLE);
+    //  converting degree in radians
+    max_angle_ = max_angle_ * 3.14159/180;
     node_->param("map_frame", map_frame_, DEFAULT_MAP_FRAME);
     node_->param("camera_frame", camera_frame_, DEFAULT_CAMERA_FRAME);
-    node_->param("max_obl_dist", max_obl_dist_, DEFAULT_MAX_OBL_DIST);
 }
 
 int main(int argc, char **argv)

@@ -5,7 +5,7 @@
 	<include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch" />
 	
 	<arg name="max_d" default="1.5" />
-	<arg name="max_o_d" default="0.5" />
+	<arg name="max_a" default="30" />
 
 	<!-- Republish RAW images from compressed topic (use it if playing bag) 
 	<node name="republish" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect2_head/rgb/image raw out:=/image_decompressed" required="true" />-->
@@ -25,7 +25,7 @@
 		<!-- Keep this bounds low for a better positioning of the marker. 
 		Note: when a tag is detected it will be shown a black and white tag overlaying the real one. When the tag is close enough (depending on the bounds below) edges will also be shown. (Sorry for the bad, bad english) -->
 		<param name="~max_dist" value="$(arg max_d)" /> 
-		<param name="~max_obl_dist" value="$(arg max_o_d)" /> 
+		<param name="~max_angle" value="$(arg max_a)" /> 
 		<!-- Let this parameter as true -->
 		<param name="mapping" value="true"/>
 
@@ -48,7 +48,7 @@
         <param name="~camera_frame" value="kinect2_head_rgb_optical_frame" />
 		<!-- Keep this bounds low for a better positioning of the marker.-->
 		<param name="~max_dist" value="$(arg max_d)" /> 
-		<param name="~max_obl_dist" value="$(arg max_o_d)" /> 
+		<param name="~max_angle" value="$(arg max_a)" /> 
 		<!-- Avoiding false tag detection telling max_id of used tags -->
 		<param name="~max_id" value="10" />
 	</node>

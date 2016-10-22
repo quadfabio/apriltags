@@ -26,7 +26,7 @@
     <param name="~map_frame" value="map" />
     <param name="~base_frame" value="base_link" />
     <param name="~max_dist" value="2" /> 
-    <param name="~max_obl_dist" value="1.5" /> 
+    <param name="~max_angle" value="30" /> 
     <param name="~vis_base_marker" value="true" />
     <param name="~vis_real_markers" value="true" />
   </node>

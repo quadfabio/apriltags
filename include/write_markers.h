@@ -2,7 +2,7 @@
 
 const std::string DEFAULT_YAML_FILE_PATH = "/home/fabio/detected_tag.yaml";
 const double DEFAULT_MAX_DIST = 25;
-const double DEFAULT_MAX_OBL_DIST = 15;
+const double DEFAULT_MAX_ANGLE = 30;
 const int DEFAULT_MAX_TAG_ID = 10;
 const std::string DEFAULT_MAP_FRAME = "map";
 const std::string DEFAULT_CAMERA_FRAME = "kinect2_head_rgb_optical_frame";
@@ -14,7 +14,7 @@ std::string yaml_path_;
 std::string map_frame_;
 std::string camera_frame_;
 double max_dist_;
-double max_obl_dist_;
+double max_angle_;
 int max_id_;
 
 //			variables
