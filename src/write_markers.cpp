@@ -1,6 +1,8 @@
 /*
 	This node subscribes to /apriltags/marker_array topic, saving every tag detections.
 	When shutted down, it calculates the mean value for every tag detected and write it on an YAML file.
+
+    TODO: move the reference frame change off-line. Just save every tag position in camera reference frame during mapping.
 */
 
 //		Libraries
