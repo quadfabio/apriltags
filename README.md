@@ -19,10 +19,10 @@ Mapping
 --------
 **Edit the launch file `make_map.launch`.**    
 
-Define max front distance (max_dist) and max side distance (max_o_dist) of tag detections you want to consider as valid.   
+Define max front distance (max_dist) and max inclination (max_a) of tag detections you want to consider as valid.   
 
 > `<name="max_d" default="1.5"/>`          
-> `<name="max_o_d" default="0.5"/>`
+> `<name="max_a" default="30"/>`
 
 Set apriltags node parameters:    
 >##### Default tag size as the width of the black square you printed out.
